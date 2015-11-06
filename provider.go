@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"errors"
 	"os"
+	"log"
 
-	"github.com/coreos/fleet/log"
 	"github.com/coreos/fleet/client"
 	"github.com/coreos/fleet/pkg"
 	"github.com/coreos/fleet/ssh"
@@ -62,7 +62,7 @@ func checkVersion(cReg registry.ClusterRegistry) (string, bool) {
 	fv := version.SemVersion
 	lv, err := cReg.LatestDaemonVersion()
 	if err != nil {
-		log.Fatal("error attempting to check latest fleet version in Registry: %v", err)
+		log.Fatalf("error attempting to check latest fleet version in Registry: %v", err)
 	} else if lv != nil && fv.LessThan(*lv) {
 		return fmt.Sprintf(oldVersionWarning, fv.String(), lv.String()), false
 	}
@@ -87,7 +87,7 @@ func maybeAddNewline(s string) string {
 func getHTTPClient(conf Conf) (client.API, error) {
 	endpoints := strings.Split(conf.Endpoint, ",")
 	if len(endpoints) > 1 {
-		log.Warningf("multiple endpoints provided but only the first (%s) is used", endpoints[0])
+		log.Printf("multiple endpoints provided but only the first (%s) is used", endpoints[0])
 	}
 
 	ep, err := url.Parse(endpoints[0])
@@ -114,7 +114,7 @@ func getHTTPClient(conf Conf) (client.API, error) {
 		if dialUnix {
 			tgt := ep.Path
 			tunnelFunc = func(string, string) (net.Conn, error) {
-				log.Debugf("Establishing remote fleetctl proxy to %s", tgt)
+				log.Printf("[DEBUG] Establishing remote fleetctl proxy to %s", tgt)
 				cmd := fmt.Sprintf(`fleetctl fd-forward %s`, tgt)
 				return ssh.DialCommand(sshClient, cmd)
 			}
@@ -155,7 +155,7 @@ func getHTTPClient(conf Conf) (client.API, error) {
 
 	tlsConfig, err := pkg.ReadTLSConfigFiles(conf.CAFile, conf.CertFile, conf.KeyFile)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to ReadTLSConfigFiles: %v", err)
 	}
 
 	trans := pkg.LoggingHTTPTransport{
@@ -275,7 +275,7 @@ func Provider() terraform.ResourceProvider {
 			    Type:     schema.TypeString,
 			    Optional: true,
 			    Description: "Location of the fleet API if --driver=api. Alternatively, if --driver=etcd, location of the etcd API.",
-				Default: "unix:///var/run/fleet.sock",
+				Default: defaultEndpoint,
 			},
 			"etcd_key_prefix": &schema.Schema{
 			    Type:     schema.TypeString,
@@ -286,17 +286,19 @@ func Provider() terraform.ResourceProvider {
 			"key_file": &schema.Schema{
 			    Type:     schema.TypeString,
 			    Optional: true,
-				Default: "/var/run/fleet.sock",
+				Default: "",
 			    Description: "Location of TLS key file used to secure communication with the fleet API or etcd",
 			},
 			"cert_file": &schema.Schema{
 			    Type:     schema.TypeString,
 			    Optional: true,
+                            Default: "",
 			    Description: "Location of TLS cert file used to secure communication with the fleet API or etcd",
 			},
 			"ca_file": &schema.Schema{
 			    Type:     schema.TypeString,
 			    Optional: true,
+                            Default: "",
 			    Description: "Location of TLS CA file used to secure communication with the fleet API or etcd",
 			},
 			"tunnel": &schema.Schema{
