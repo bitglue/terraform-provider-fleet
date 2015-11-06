@@ -19,12 +19,12 @@ func TestGetRegistryAPI(test *testing.T) {
 	var api client.API
 
 	api, err := getAPI(Conf{
-		ClientDriver : "etcd",
+		ClientDriver: "etcd",
 
-		StrictHostKeyChecking : false,
+		StrictHostKeyChecking: false,
 
-		SSHTimeout : 1.0,
-		RequestTimeout : 1.0,
+		SSHTimeout:     1.0,
+		RequestTimeout: 1.0,
 	})
 
 	if err != nil {
@@ -44,13 +44,13 @@ func TestGetHTTPAPI(test *testing.T) {
 	var api client.API
 
 	api, err := getAPI(Conf{
-		ClientDriver : "api",
-		Endpoint : "http://falselocation.test:8080",
+		ClientDriver: "api",
+		Endpoint:     "http://falselocation.test:8080",
 
-		StrictHostKeyChecking : false,
+		StrictHostKeyChecking: false,
 
-		SSHTimeout : 1.0,
-		RequestTimeout : 1.0,
+		SSHTimeout:     1.0,
+		RequestTimeout: 1.0,
 	})
 
 	if err != nil {

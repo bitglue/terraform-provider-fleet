@@ -1,15 +1,15 @@
 package main
 
 import (
+	"errors"
+	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
-	"fmt"
-	"errors"
-	"os"
-	"log"
 
 	"github.com/coreos/fleet/client"
 	"github.com/coreos/fleet/pkg"
@@ -18,8 +18,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 
-	"github.com/coreos/fleet/version"
 	"github.com/coreos/fleet/registry"
+	"github.com/coreos/fleet/version"
 
 	etcd "github.com/coreos/fleet/Godeps/_workspace/src/github.com/coreos/etcd/client"
 )
@@ -34,28 +34,28 @@ incompatibility issues.
 
 // Conf - Config for fleet
 type Conf struct {
-	ClientDriver    		string
-	ExperimentalAPI 		bool
-	Endpoint        		string
-	RequestTimeout  		float64
+	ClientDriver    string
+	ExperimentalAPI bool
+	Endpoint        string
+	RequestTimeout  float64
 
-	KeyFile  				string
-	CertFile 				string
-	CAFile   				string
+	KeyFile  string
+	CertFile string
+	CAFile   string
 
-	Tunnel                	string
-	KnownHostsFile        	string
-	StrictHostKeyChecking 	bool
-	SSHTimeout            	float64
-	SSHUserName           	string
+	Tunnel                string
+	KnownHostsFile        string
+	StrictHostKeyChecking bool
+	SSHTimeout            float64
+	SSHUserName           string
 
-	EtcdKeyPrefix 			string
+	EtcdKeyPrefix string
 }
 
 const (
-	clientDriverAPI = "api"
+	clientDriverAPI  = "api"
 	clientDriverEtcd = "etcd"
-	defaultEndpoint = "unix:///var/run/fleet.sock"
+	defaultEndpoint  = "unix:///var/run/fleet.sock"
 )
 
 func checkVersion(cReg registry.ClusterRegistry) (string, bool) {
@@ -266,77 +266,77 @@ func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"driver": &schema.Schema{
-			    Type:     schema.TypeString,
-			    Optional: true,
-			    Description: "Adapter used to execute fleetctl commands. Options include api and etcd.",
-				Default: "api",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Adapter used to execute fleetctl commands. Options include api and etcd.",
+				Default:     "api",
 			},
 			"endpoint": &schema.Schema{
-			    Type:     schema.TypeString,
-			    Optional: true,
-			    Description: "Location of the fleet API if --driver=api. Alternatively, if --driver=etcd, location of the etcd API.",
-				Default: defaultEndpoint,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Location of the fleet API if --driver=api. Alternatively, if --driver=etcd, location of the etcd API.",
+				Default:     defaultEndpoint,
 			},
 			"etcd_key_prefix": &schema.Schema{
-			    Type:     schema.TypeString,
-			    Optional: true,
-				Default: registry.DefaultKeyPrefix,
-			    Description: "Keyspace for fleet data in etcd (development use only!)",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     registry.DefaultKeyPrefix,
+				Description: "Keyspace for fleet data in etcd (development use only!)",
 			},
 			"key_file": &schema.Schema{
-			    Type:     schema.TypeString,
-			    Optional: true,
-				Default: "",
-			    Description: "Location of TLS key file used to secure communication with the fleet API or etcd",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "",
+				Description: "Location of TLS key file used to secure communication with the fleet API or etcd",
 			},
 			"cert_file": &schema.Schema{
-			    Type:     schema.TypeString,
-			    Optional: true,
-                            Default: "",
-			    Description: "Location of TLS cert file used to secure communication with the fleet API or etcd",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "",
+				Description: "Location of TLS cert file used to secure communication with the fleet API or etcd",
 			},
 			"ca_file": &schema.Schema{
-			    Type:     schema.TypeString,
-			    Optional: true,
-                            Default: "",
-			    Description: "Location of TLS CA file used to secure communication with the fleet API or etcd",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "",
+				Description: "Location of TLS CA file used to secure communication with the fleet API or etcd",
 			},
 			"tunnel": &schema.Schema{
-			    Type:     schema.TypeString,
-			    Optional: true,
-			    Description: "Establish an SSH tunnel through the provided address for communication with fleet and etcd.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Establish an SSH tunnel through the provided address for communication with fleet and etcd.",
 			},
 			"known_hosts_file": &schema.Schema{
-			    Type:     schema.TypeString,
-			    Optional: true,
-			    Description: "File used to store remote machine fingerprints. Ignored if strict host key checking is disabled.",
-				Default: ssh.DefaultKnownHostsFile,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "File used to store remote machine fingerprints. Ignored if strict host key checking is disabled.",
+				Default:     ssh.DefaultKnownHostsFile,
 			},
 			"ssh_username": &schema.Schema{
-			    Type:     schema.TypeString,
-			    Optional: true,
-			    Description: "Username to use when connecting to CoreOS instance.",
-				Default: "core",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Username to use when connecting to CoreOS instance.",
+				Default:     "core",
 			},
 
 			"strict_host_key_checking": &schema.Schema{
-			    Type:     schema.TypeBool,
-			    Optional: true,
-			    Description: "Verify host keys presented by remote machines before initiating SSH connections.",
-				Default: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Verify host keys presented by remote machines before initiating SSH connections.",
+				Default:     true,
 			},
 
 			"ssh_timeout": &schema.Schema{
-			    Type:     schema.TypeFloat,
-			    Optional: true,
-			    Description: "Amount of time in seconds to allow for SSH connection initialization before failing.",
-				Default: 10.0,
+				Type:        schema.TypeFloat,
+				Optional:    true,
+				Description: "Amount of time in seconds to allow for SSH connection initialization before failing.",
+				Default:     10.0,
 			},
 			"request_timeout": &schema.Schema{
-			    Type:     schema.TypeFloat,
-			    Optional: true,
-			    Description: "Amount of time in seconds to allow a single request before considering it failed.",
-				Default: 3.0,
+				Type:        schema.TypeFloat,
+				Optional:    true,
+				Description: "Amount of time in seconds to allow a single request before considering it failed.",
+				Default:     3.0,
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -348,19 +348,19 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	return getAPI(Conf{
-		ClientDriver : d.Get("driver").(string),
-		Endpoint : d.Get("endpoint").(string),
-		EtcdKeyPrefix : d.Get("etcd_key_prefix").(string),
-		KeyFile : d.Get("key_file").(string),
-		CertFile : d.Get("cert_file").(string),
-		CAFile : d.Get("ca_file").(string),
-		Tunnel : d.Get("tunnel").(string),
-		KnownHostsFile : d.Get("known_hosts_file").(string),
-		SSHUserName : d.Get("ssh_username").(string),
+		ClientDriver:   d.Get("driver").(string),
+		Endpoint:       d.Get("endpoint").(string),
+		EtcdKeyPrefix:  d.Get("etcd_key_prefix").(string),
+		KeyFile:        d.Get("key_file").(string),
+		CertFile:       d.Get("cert_file").(string),
+		CAFile:         d.Get("ca_file").(string),
+		Tunnel:         d.Get("tunnel").(string),
+		KnownHostsFile: d.Get("known_hosts_file").(string),
+		SSHUserName:    d.Get("ssh_username").(string),
 
-		StrictHostKeyChecking : d.Get("strict_host_key_checking").(bool),
+		StrictHostKeyChecking: d.Get("strict_host_key_checking").(bool),
 
-		SSHTimeout : d.Get("ssh_timeout").(float64),
-		RequestTimeout : d.Get("request_timeout").(float64),
+		SSHTimeout:     d.Get("ssh_timeout").(float64),
+		RequestTimeout: d.Get("request_timeout").(float64),
 	})
 }
